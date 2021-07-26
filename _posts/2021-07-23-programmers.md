@@ -21,6 +21,13 @@ solution 함수의 매개변수로 다리에 올라갈 수 있는 트럭 수 bri
 
 <h3>🔹나의 풀이</h3>
 
+0. 트럭의 움직임에 따라 0을 추가하고 삭제하는 방식을 채택합니다.
+1. bridge_length만큼 0으로 구성된 bridge 리스트를 생성합니다.
+2. while문이 시작되면, 트럭의 움직임이 있다는 것을 의미합니다. 따라서 일단 count에 1을 더해줌과 동시에 bridge 리스트의 첫번째 원소를 삭제합니다.
+3. 다리 위에 있는 트럭 + 기다리는 다음 트럭의 합과 weight를 비교합니다.
+4. 다음 트럭이 다리에 올라갈 수 있으면 트럭을 추가해주고, 올라갈 수 없다면 0을 추가해서 트럭을 앞으로 당깁니다.
+5. 마지막 트럭은 기다리는 트럭이 없음으로, 다리를 나가기 위해 bridge_length 만큼 더하여 count를 리턴합니다.
+
 ```python
 def solution(bridge_length, weight, truck_weights):
     count = 0
@@ -35,3 +42,77 @@ def solution(bridge_length, weight, truck_weights):
             bridge.append(0)
     return (count + bridge_length)
 ```
+
+<h3>🔶다른 사람의 풀이</h3>
+
+```python
+import collections
+
+DUMMY_TRUCK = 0
+
+
+class Bridge(object):
+
+    def __init__(self, length, weight):
+        self._max_length = length
+        self._max_weight = weight
+        self._queue = collections.deque()
+        self._current_weight = 0
+
+    def push(self, truck):
+        next_weight = self._current_weight + truck
+        if next_weight <= self._max_weight and len(self._queue) < self._max_length:
+            self._queue.append(truck)
+            self._current_weight = next_weight
+            return True
+        else:
+            return False
+
+    def pop(self):
+        item = self._queue.popleft()
+        self._current_weight -= item
+        return item
+
+    def __len__(self):
+        return len(self._queue)
+
+    def __repr__(self):
+        return 'Bridge({}/{} : [{}])'.format(self._current_weight, self._max_weight, list(self._queue))
+
+
+def solution(bridge_length, weight, truck_weights):
+    bridge = Bridge(bridge_length, weight)
+    trucks = collections.deque(w for w in truck_weights)
+
+    for _ in range(bridge_length):
+        bridge.push(DUMMY_TRUCK)
+
+    count = 0
+    while trucks:
+        bridge.pop()
+
+        if bridge.push(trucks[0]):
+            trucks.popleft()
+        else:
+            bridge.push(DUMMY_TRUCK)
+
+        count += 1
+
+    while bridge:
+        bridge.pop()
+        count += 1
+
+    return count
+
+
+def main():
+    print(solution(2, 10, [7, 4, 5, 6]), 8)
+    print(solution(100, 100, [10]), 101)
+    print(solution(100, 100, [10, 10, 10, 10, 10, 10, 10, 10, 10, 10]), 110)
+
+
+if __name__ == '__main__':
+    main()
+```
+
+_나두 클래스로 코드 짜는 거.. 알고리즘 수업때 배우고 있지만, 아직도 넘 어렵다🙄_
